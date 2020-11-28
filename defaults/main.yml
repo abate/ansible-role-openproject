@@ -4,11 +4,12 @@ openproject_postgres_image: postgres:10
 
 openproject_docker_network: []
 
+# these can be overwritten with a docker volume
 openproject_dir: /opt/openproject
 openproject_pgdata: '{{ openproject_dir }}/pgdata'
 openproject_assets: '{{ openproject_dir }}/assets'
 
-openproject_db_volume: '{{ openproject_pgdata }}:/var/openproject/pgdata'
+openproject_db_volume: '{{ openproject_pgdata }}:/var/lib/postgresql/data'
 openproject_assets_volume: '{{ openproject_assets }}:/var/openproject/assets'
 
 openproject_docker_ports: []
