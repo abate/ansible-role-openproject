@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "ansible-role-openproject"
+version = "0.1.0"
+description = ""
+authors = ["Pietro <pietro.abate@tezcore.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+ansible = "^2.9.9"
+molecule = "^3.0.4"
+docker = "^4.2.0"
+ansible-lint = "^4.2.0"
+flake8 = "^3.8.1"
+molecule-docker = "^0.3.3"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
