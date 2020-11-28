@@ -1,13 +1,14 @@
 ---
 - name: Verify
-  hosts: localhost
+  hosts: all
   tasks:
   - name: Read the openproject config
     slurp:
       src: '{{ openproject_dir }}/config/configuration.yml'
     register: config_contents_b64
 
-  - set_fact:
+  - name: convert config to yaml
+    set_fact:
       config_contents: '{{ config_contents_b64.content | b64decode | from_yaml }}'
 
   - name: Assert that the config file is set
@@ -22,5 +23,5 @@
   - name: Assert docker container settings
     assert:
       that:
-        - "'openproject' in container_info.container.NetworkSettings.Networks"
-        - 'container_info.container.HostConfig.RestartPolicy.Name == "unless-stopped"'
+      - "'openproject' in container_info.container.NetworkSettings.Networks"
+      - 'container_info.container.HostConfig.RestartPolicy.Name == "unless-stopped"'
