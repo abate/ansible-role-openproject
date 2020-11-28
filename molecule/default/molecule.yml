@@ -1,19 +1,33 @@
 ---
+lint: |
+  set -e
+  yamllint -d relaxed .
+  ansible-lint
+  flake8
 dependency:
   name: galaxy
 driver:
-  name: delegated
+  name: docker
 platforms:
+  #- name: ubuntu
+    #image: geerlingguy/docker-ubuntu2004-ansible
+    #volumes:
+      #- /sys/fs/cgroup:/sys/fs/cgroup:ro
+    #command: /lib/systemd/systemd
+    #privileged: true
+    #pre_build_image: true
   - name: instance
+    image: docker:stable-dind
+    command: /usr/local/bin/dockerd-entrypoint.sh
+    privileged: true
+    tty: true
+    interactive: true
+    detach: true
 provisioner:
   name: ansible
-  config_options:
-    defaults:
-      interpreter_python: ../../.venv/bin/python
-      stdout_callback: yaml
   inventory:
-    group_vars:
-      all:
-        openproject_dir: /tmp/ansible-role-openproject
+    host_vars:
+      ubuntu:
+        ansible_user: ansible
 verifier:
   name: ansible

@@ -1,9 +1,20 @@
 ---
 - name: Converge
-  hosts: localhost
+  hosts: all
+  vars:
+    openproject_dir: '/opt/openproject'
+  become: true
   tasks:
-    - debug:
-        msg: 'Temp dir in {{ openproject_dir }}'
+
+    - name: Create the openproject dirs
+      file:
+        state: directory
+        path: '{{ openproject_dir }}/{{ item }}'
+        recurse: true
+        mode: 0774
+      loop:
+        - assets
+        - pgdata
 
     - name: Create docker network
       docker_network:
@@ -13,17 +24,15 @@
       include_role:
         name: ansible-role-openproject
       vars:
+        openproject_db_password: passwo4d
         openproject_secret_key_base: secret
-        openproject_docker_ports: ['80:80']
-        openproject_docker_networks:
+        openproject_docker_ports: ['127.0.0.1:8080:8080']
+        openproject_docker_network:
           - name: openproject
-        openproject_config: |
-          default:
-            disable_password_choice: true
 
     - name: Wait for openproject to boot
       uri:
-        url: http://localhost/api/v3
+        url: http://localhost:8080/api/v3
         status_code: 200
       register: result
       until: result.status == 200
