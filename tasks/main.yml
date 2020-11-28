@@ -27,6 +27,12 @@
     purge_networks: true
     ports: '{{ openproject_docker_ports }}'
     env: "{{ _config }}"
+    #memory: 500M
+    #memory_swap: 1.5GB
+    #log_driver: json-file
+    #log_options:
+      #max-size: 10m
+      #max-file: "2"
 
 - name: Start the openproject db container
   docker_container:
