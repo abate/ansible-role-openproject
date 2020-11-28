@@ -2,11 +2,16 @@
 
 An opinionated role that installs OpenProject as a single Docker container.
 
+## Requirements
+
+- poetry ( to install all the dependencies to run the tests )
+
 ### Role Variables
 
 Required:
 
 - `openproject_secret_key_base`
+- `openproject_db_password`
 
 Optional variables in [defaults.yml](./defaults/main.yml).
 
@@ -22,7 +27,6 @@ Example Playbook
       vars:
         openproject_secret_key_base: secret
         openproject_docker_ports: ['80:80']
-        openproject_config: '{{ lookup("template", "openproject_config.yml") }}'
 ```
 
 ### License

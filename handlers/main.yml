@@ -6,10 +6,11 @@
     name: '{{ openproject_container_name }}'
     restart: true
 
-- name: Health check openproject
-  listen: health_check_openproject
-  shell: 'docker exec {{ openproject_container_name }} curl localhost/api/v3 -s'
-  register: result
-  until: result.rc == 0
-  retries: 300
-  delay: 1
+# TODO: use docker_container
+#- name: Health check openproject
+  #listen: health_check_openproject
+  #shell: 'docker exec {{ openproject_container_name }} curl localhost/api/v3 -s'
+  #register: result
+  #until: result.rc == 0
+  #retries: 300
+  #delay: 1

@@ -1,34 +1,87 @@
 ---
+
+- name: Set dict vars combined with defaults dict vars
+  set_fact:
+    _config: |
+      {{ openproject_configuration_default
+      | combine(openproject_configuration | default({}), recursive=True) }}
+
 - name: Assert that variables are defined
   assert:
     that:
       - openproject_secret_key_base is defined
+      - openproject_db_password is defined
 
-- name: Create the openproject dirs
-  file:
-    state: directory
-    path: '{{ openproject_dir }}/config'
-    recurse: true
-
-- name: Template the openproject config file
-  notify: restart_openproject
-  copy:
-    content: '{{ openproject_config }}'
-    dest: '{{ openproject_dir }}/config/configuration.yml'
-
-- name: Pull the openproject all-in-one image
+- name: Pull the openproject image
   docker_image:
     source: pull
     name: '{{ openproject_image }}'
 
-- name: Start the openproject container
-  notify: health_check_openproject
+- name: Start the openproject web container
+  # notify: health_check_openproject
   docker_container:
     image: '{{ openproject_image }}'
-    name: '{{ openproject_container_name }}'
+    name: web
     restart_policy: unless-stopped
-    networks: '{{ openproject_docker_networks }}'
-    volumes: '{{ openproject_docker_volumes }}'
+    networks: '{{ openproject_docker_network }}'
+    purge_networks: true
     ports: '{{ openproject_docker_ports }}'
+    env: "{{ _config }}"
+
+- name: Start the openproject db container
+  docker_container:
+    image: postgres:10
+    name: postgres
+    restart_policy: unless-stopped
+    networks: '{{ openproject_docker_network }}'
+    purge_networks: true
+    volumes:
+      - '{{ openproject_db_volume }}'
     env:
-      SECRET_KEY_BASE: '{{ openproject_secret_key_base }}'
+      POSTGRES_PASSWORD: "{{ openproject_db_password }}"
+      POSTGRES_DB: "openproject"
+
+- name: Start the openproject seeder container
+  docker_container:
+    image: '{{ openproject_image }}'
+    name: seeder
+    command: "./docker/seeder"
+    restart_policy: unless-stopped
+    networks: '{{ openproject_docker_network }}'
+    purge_networks: true
+    volumes:
+      - '{{ openproject_assets_volume }}'
+    env: "{{ _config }}"
+
+- name: Start the openproject cache container
+  docker_container:
+    image: memcached
+    name: cache
+    restart_policy: unless-stopped
+    networks: '{{ openproject_docker_network }}'
+    purge_networks: true
+    env: "{{ _config }}"
+
+- name: Start the openproject worker container
+  docker_container:
+    image: '{{ openproject_image }}'
+    name: worker
+    command: "./docker/worker"
+    restart_policy: unless-stopped
+    networks: '{{ openproject_docker_network }}'
+    purge_networks: true
+    volumes:
+      - '{{ openproject_assets_volume }}'
+    env: "{{ _config }}"
+
+- name: Start the openproject cron container
+  docker_container:
+    image: '{{ openproject_image }}'
+    name: cron
+    command: "./docker/cron"
+    restart_policy: unless-stopped
+    networks: '{{ openproject_docker_network }}'
+    purge_networks: true
+    volumes:
+      - '{{ openproject_assets_volume }}'
+    env: "{{ _config }}"

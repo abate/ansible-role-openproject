@@ -1,18 +1,23 @@
 ---
+openproject_image: openproject/community:11
+openproject_postgres_image: postgres:10
+
+openproject_docker_network: []
+
 openproject_dir: /opt/openproject
-openproject_image: openproject/community
-openproject_container_name: openproject
-openproject_docker_networks: []
-openproject_docker_volumes:
-  - '{{ openproject_dir}}/config:/app/openproject/config'
-  - '{{ openproject_dir }}/pgdata:/var/openproject/pgdata'
-  - '{{ openproject_dir }}/assets:/var/openproject/assets'
+openproject_pgdata: '{{ openproject_dir }}/pgdata'
+openproject_assets: '{{ openproject_dir }}/assets'
+
+openproject_db_volume: '{{ openproject_pgdata }}:/var/openproject/pgdata'
+openproject_assets_volume: '{{ openproject_assets }}:/var/openproject/assets'
+
 openproject_docker_ports: []
-openproject_config: |
-  default:
-    log_level: info
-    rails_force_ssl: false
-    session_store: :cache_store
-    email_delivery_method: :smtp
-    smtp_address: "localhost"
-    smtp_port: 25
+openproject_db_password:
+
+openproject_configuration_default:
+  SECRET_KEY_BASE: '{{ openproject_secret_key_base }}'
+  RAILS_CACHE_STORE: "memcache"
+  OPENPROJECT_CACHE__MEMCACHE__SERVER: "cache:11211"
+  DATABASE_URL: "postgres://postgres:{{ openproject_db_password }}@db/openproject"
+  USE_PUMA: "true"
+  IMAP_ENABLED: "false"
