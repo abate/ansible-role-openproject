@@ -17,6 +17,19 @@
     source: pull
     name: '{{ openproject_image }}'
 
+- name: Start the openproject db container
+  docker_container:
+    image: "{{ openproject_postgres_image }}"
+    name: db
+    restart_policy: unless-stopped
+    networks: '{{ openproject_docker_network }}'
+    purge_networks: true
+    volumes:
+      - '{{ openproject_db_volume }}'
+    env:
+      POSTGRES_PASSWORD: "{{ openproject_db_password }}"
+      POSTGRES_DB: "openproject"
+
 - name: Start the openproject web container
   # notify: health_check_openproject
   docker_container:
@@ -33,19 +46,6 @@
     #log_options:
       #max-size: 10m
       #max-file: "2"
-
-- name: Start the openproject db container
-  docker_container:
-    image: postgres:10
-    name: postgres
-    restart_policy: unless-stopped
-    networks: '{{ openproject_docker_network }}'
-    purge_networks: true
-    volumes:
-      - '{{ openproject_db_volume }}'
-    env:
-      POSTGRES_PASSWORD: "{{ openproject_db_password }}"
-      POSTGRES_DB: "openproject"
 
 - name: Start the openproject seeder container
   docker_container:
