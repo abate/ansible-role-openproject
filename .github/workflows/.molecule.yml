@@ -14,12 +14,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Install dependencies
-      run: |
-        sudo apt install python3-setuptools python3-wheel
-        pip3 install poetry==1.0.5
-        poetry config virtualenvs.create false
-        poetry install --no-interaction --no-ansi
+    - name: Install Poetry
+      run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+    #- name: Install dependencies
+      #run: |
+        #sudo apt install python3-setuptools python3-wheel
+        #pip3 install poetry==1.0.5
+        #poetry config virtualenvs.create false
+        #poetry install --no-interaction --no-ansi
     - name: Run molecule
       run: |
         poetry run molecule test --all
