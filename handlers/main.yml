@@ -6,11 +6,13 @@
     name: '{{ openproject_container_name }}'
     restart: true
 
-# TODO: use docker_container
-#- name: Health check openproject
-  #listen: health_check_openproject
-  #shell: 'docker exec {{ openproject_container_name }} curl localhost/api/v3 -s'
-  #register: result
-  #until: result.rc == 0
-  #retries: 300
-  #delay: 1
+- name: Health check openproject
+  listen: health_check_openproject
+  docker_container:
+    name: hack
+    image: "{{ openproject_container_name }}"
+    command: curl localhost/api/v3 -s
+  register: result
+  until: result.rc == 0
+  retries: 300
+  delay: 1
