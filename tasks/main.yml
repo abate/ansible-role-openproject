@@ -5,6 +5,11 @@
     _config: |
       {{ openproject_configuration_default
       | combine(openproject_configuration | default({}), recursive=True) }}
+    _docker_network: |
+      {{ openproject_docker_network | default([{ 'name': 'bridge' }]) }}
+
+- debug: var=_config
+- debug: var=_docker_network
 
 - name: Assert that variables are defined
   assert:
@@ -22,13 +27,16 @@
     image: "{{ openproject_postgres_image }}"
     name: db
     restart_policy: unless-stopped
-    networks: '{{ openproject_docker_network }}'
-    purge_networks: true
+    networks: '{{ _docker_network }}'
+    networks_cli_compatible: no
+    container_default_behavior: no_defaults
     volumes:
       - '{{ openproject_db_volume }}'
     env:
       POSTGRES_PASSWORD: "{{ openproject_db_password }}"
       POSTGRES_DB: "openproject"
+    labels:
+      traefik.enable: "false"
 
 - name: Start the openproject web container
   # notify: health_check_openproject
@@ -36,10 +44,17 @@
     image: '{{ openproject_image }}'
     name: web
     restart_policy: unless-stopped
-    networks: '{{ openproject_docker_network }}'
-    purge_networks: true
+    networks: '{{ _docker_network }}'
+    networks_cli_compatible: no
+    container_default_behavior: no_defaults
     ports: '{{ openproject_docker_ports }}'
     env: "{{ _config }}"
+    labels:
+      traefik.backend: "web"
+      traefik.frontend.rule: "Host:{{ openproject_hostname }}"
+      traefik.port: "8080"
+      traefik.enable: "{{ openproject_traefik }}"
+      traefik.docker.network: "{{ _docker_network[0].name }}"
     #memory: 500M
     #memory_swap: 1.5GB
     #log_driver: json-file
@@ -53,20 +68,26 @@
     name: seeder
     command: "./docker/seeder"
     restart_policy: unless-stopped
-    networks: '{{ openproject_docker_network }}'
-    purge_networks: true
+    networks: '{{ _docker_network }}'
+    networks_cli_compatible: no
+    container_default_behavior: no_defaults
     volumes:
       - '{{ openproject_assets_volume }}'
     env: "{{ _config }}"
+    labels:
+      traefik.enable: "false"
 
 - name: Start the openproject cache container
   docker_container:
     image: memcached
     name: cache
     restart_policy: unless-stopped
-    networks: '{{ openproject_docker_network }}'
-    purge_networks: true
+    networks: '{{ _docker_network }}'
+    networks_cli_compatible: no
+    container_default_behavior: no_defaults
     env: "{{ _config }}"
+    labels:
+      traefik.enable: "false"
 
 - name: Start the openproject worker container
   docker_container:
@@ -74,11 +95,14 @@
     name: worker
     command: "./docker/worker"
     restart_policy: unless-stopped
-    networks: '{{ openproject_docker_network }}'
-    purge_networks: true
+    networks: '{{ _docker_network }}'
+    networks_cli_compatible: no
+    container_default_behavior: no_defaults
     volumes:
       - '{{ openproject_assets_volume }}'
     env: "{{ _config }}"
+    labels:
+      traefik.enable: "false"
 
 - name: Start the openproject cron container
   docker_container:
@@ -86,8 +110,11 @@
     name: cron
     command: "./docker/cron"
     restart_policy: unless-stopped
-    networks: '{{ openproject_docker_network }}'
-    purge_networks: true
+    networks: '{{ _docker_network }}'
+    networks_cli_compatible: no
+    container_default_behavior: no_defaults
     volumes:
       - '{{ openproject_assets_volume }}'
     env: "{{ _config }}"
+    labels:
+      traefik.enable: "false"

@@ -10,11 +10,3 @@
     - name: install docker package from pip
       pip:
         name: docker
-    #- name: updating apt-cache
-      #apt:
-        #update_cache: true
-        #cache_valid_time: 86400
-        #force_apt_get: true
-        ##    - name: install docker dependencies
-        ##      apt:
-

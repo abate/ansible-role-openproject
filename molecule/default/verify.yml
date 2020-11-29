@@ -7,9 +7,3 @@
     register: container_info
     docker_container_info:
       name: openproject
-
-  #- name: Assert docker container settings
-    #assert:
-      #that:
-      #- "'openproject' in container_info.container.NetworkSettings.Networks"
-      #- 'container_info.container.HostConfig.RestartPolicy.Name == "unless-stopped"'
