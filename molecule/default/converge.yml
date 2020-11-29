@@ -10,7 +10,6 @@
       file:
         state: directory
         path: '{{ openproject_dir }}/{{ item }}'
-        recurse: true
         mode: 0774
       loop:
         - assets
