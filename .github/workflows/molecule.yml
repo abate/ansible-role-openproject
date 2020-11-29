@@ -18,10 +18,10 @@ jobs:
       run: |
         sudo apt install python3-setuptools python3-wheel
         curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+        source $HOME/.poetry/env
         poetry config virtualenvs.create false
         poetry install --no-interaction --no-ansi
     - name: Run molecule
       run: |
-        source $HOME/.poetry/env
         poetry --version
         . $HOME/.poetry/env && poetry run molecule test --all
