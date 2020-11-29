@@ -14,19 +14,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
       with:
         python-version: 3.8
+    - uses: Gr1N/setup-poetry@v4
+    - run: poetry --version
+
     - name: Install Poetry
       run: |
-        sudo apt install python3-setuptools python3-wheel
-        curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
-        source $HOME/.poetry/env
-        poetry config virtualenvs.create true
         poetry --version
+        ls -la
+        ls -la ../
         poetry install --no-interaction --no-ansi
     - name: Run molecule
       run: |
-        poetry --version
         poetry run molecule test --all
