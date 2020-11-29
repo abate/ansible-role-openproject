@@ -29,7 +29,7 @@
     restart_policy: unless-stopped
     networks: '{{ _docker_network }}'
     networks_cli_compatible: no
-    container_default_behavior: no_defaults
+    #container_default_behavior: no_defaults
     volumes:
       - '{{ openproject_db_volume }}'
     env:
@@ -46,7 +46,7 @@
     restart_policy: unless-stopped
     networks: '{{ _docker_network }}'
     networks_cli_compatible: no
-    container_default_behavior: no_defaults
+    #container_default_behavior: no_defaults
     ports: '{{ openproject_docker_ports }}'
     env: "{{ _config }}"
     labels:
@@ -70,7 +70,7 @@
     restart_policy: unless-stopped
     networks: '{{ _docker_network }}'
     networks_cli_compatible: no
-    container_default_behavior: no_defaults
+    #container_default_behavior: no_defaults
     volumes:
       - '{{ openproject_assets_volume }}'
     env: "{{ _config }}"
@@ -84,7 +84,7 @@
     restart_policy: unless-stopped
     networks: '{{ _docker_network }}'
     networks_cli_compatible: no
-    container_default_behavior: no_defaults
+    #container_default_behavior: no_defaults
     env: "{{ _config }}"
     labels:
       traefik.enable: "false"
@@ -97,7 +97,7 @@
     restart_policy: unless-stopped
     networks: '{{ _docker_network }}'
     networks_cli_compatible: no
-    container_default_behavior: no_defaults
+    #container_default_behavior: no_defaults
     volumes:
       - '{{ openproject_assets_volume }}'
     env: "{{ _config }}"
@@ -112,7 +112,7 @@
     restart_policy: unless-stopped
     networks: '{{ _docker_network }}'
     networks_cli_compatible: no
-    container_default_behavior: no_defaults
+    #container_default_behavior: no_defaults
     volumes:
       - '{{ openproject_assets_volume }}'
     env: "{{ _config }}"
