@@ -1,6 +1,12 @@
-# Ansible OpenProject [![Build Status](https://travis-ci.org/danihodovic/ansible-role-openproject.svg?branch=master)](https://travis-ci.org/danihodovic/ansible-role-openproject)
+# Ansible OpenProject
 
-An opinionated role that installs OpenProject as a single Docker container.
+An opinionated role that installs OpenProject as a single Docker multi-container.
+
+While technically a fork of danihodovic/ansible-role-openproject I've re-written
+almost everything.
+
+This playbook installs openproject using multiple containers. It also adds traefik
+labels to those containers. Can be used with or without traefik.
 
 ## Requirements
 
@@ -20,13 +26,16 @@ Example Playbook
 
 ```yaml
 ---
-- name: Install OpenProject
-  hosts: localhost
-  roles:
-    - role: ansible-role-openproject
-      vars:
-        openproject_secret_key_base: secret
-        openproject_docker_ports: ['80:80']
+
+- name: Include ansible-role-openproject
+  include_role:
+    name: ansible-role-openproject
+  vars:
+    openproject_db_password: passwo4d
+    openproject_secret_key_base: secret
+    openproject_docker_ports: ['127.0.0.1:8080:8080']
+    openproject_docker_network:
+      - name: openproject
 ```
 
 ### License
@@ -34,5 +43,9 @@ Example Playbook
 MIT
 
 ### Author Information
+
+Pietro Abate
+
+### Credits:
 
 Dani Hodovic (https://depode.com)
