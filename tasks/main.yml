@@ -1,120 +1,99 @@
 ---
-
-- name: Set dict vars combined with defaults dict vars
-  set_fact:
+- name:
+  vars:
     _config: |
       {{ openproject_configuration_default
       | combine(openproject_configuration | default({}), recursive=True) }}
     _docker_network: |
       {{ openproject_docker_network | default([{ 'name': 'bridge' }]) }}
 
-- debug: var=_config
-- debug: var=_docker_network
+  block:
+    - debug: var=_config
+    - debug: var=_docker_network
 
-- name: Assert that variables are defined
-  assert:
-    that:
-      - openproject_secret_key_base is defined
-      - openproject_db_password is defined
+    - name: Assert that variables are defined
+      assert:
+        that:
+          - openproject_secret_key_base is defined
+          - openproject_db_password is defined
 
-- name: Pull the openproject image
-  docker_image:
-    source: pull
-    name: '{{ openproject_image }}'
+    - name: Start the openproject db container
+      docker_container:
+        image: "{{ openproject_postgres_image }}"
+        name: db
+        volumes:
+          - '{{ openproject_db_volume }}'
+        env:
+          POSTGRES_PASSWORD: "{{ openproject_db_password }}"
+          POSTGRES_DB: "openproject"
+        labels:
+          traefik.enable: "false"
 
-- name: Start the openproject db container
-  docker_container:
-    image: "{{ openproject_postgres_image }}"
-    name: db
-    restart_policy: unless-stopped
-    networks: '{{ _docker_network }}'
-    networks_cli_compatible: no
-    #container_default_behavior: no_defaults
-    volumes:
-      - '{{ openproject_db_volume }}'
-    env:
-      POSTGRES_PASSWORD: "{{ openproject_db_password }}"
-      POSTGRES_DB: "openproject"
-    labels:
-      traefik.enable: "false"
+    - name: Start the openproject web container
+      # notify: health_check_openproject
+      docker_container:
+        image: '{{ openproject_image }}'
+        name: web
+        ports: '{{ openproject_docker_ports }}'
+        env: "{{ _config }}"
+        labels:
+          traefik.backend: "web"
+          traefik.frontend.rule: "Host:{{ openproject_hostname }}"
+          traefik.port: "8080"
+          traefik.enable: "{{ openproject_traefik }}"
+          traefik.docker.network: "{{ _docker_network[0].name }}"
+        #memory: 500M
+        #memory_swap: 1.5GB
+        #log_driver: json-file
+        #log_options:
+          #max-size: 10m
+          #max-file: "2"
 
-- name: Start the openproject web container
-  # notify: health_check_openproject
-  docker_container:
-    image: '{{ openproject_image }}'
-    name: web
-    restart_policy: unless-stopped
-    networks: '{{ _docker_network }}'
-    networks_cli_compatible: no
-    #container_default_behavior: no_defaults
-    ports: '{{ openproject_docker_ports }}'
-    env: "{{ _config }}"
-    labels:
-      traefik.backend: "web"
-      traefik.frontend.rule: "Host:{{ openproject_hostname }}"
-      traefik.port: "8080"
-      traefik.enable: "{{ openproject_traefik }}"
-      traefik.docker.network: "{{ _docker_network[0].name }}"
-    #memory: 500M
-    #memory_swap: 1.5GB
-    #log_driver: json-file
-    #log_options:
-      #max-size: 10m
-      #max-file: "2"
+    - name: Start the openproject seeder container
+      docker_container:
+        image: '{{ openproject_image }}'
+        name: seeder
+        command: "./docker/seeder"
+        volumes:
+          - '{{ openproject_assets_volume }}'
+        env: "{{ _config }}"
+        labels:
+          traefik.enable: "false"
 
-- name: Start the openproject seeder container
-  docker_container:
-    image: '{{ openproject_image }}'
-    name: seeder
-    command: "./docker/seeder"
-    restart_policy: unless-stopped
-    networks: '{{ _docker_network }}'
-    networks_cli_compatible: no
-    #container_default_behavior: no_defaults
-    volumes:
-      - '{{ openproject_assets_volume }}'
-    env: "{{ _config }}"
-    labels:
-      traefik.enable: "false"
+    - name: Start the openproject cache container
+      docker_container:
+        image: memcached
+        name: cache
+        env: "{{ _config }}"
+        labels:
+          traefik.enable: "false"
 
-- name: Start the openproject cache container
-  docker_container:
-    image: memcached
-    name: cache
-    restart_policy: unless-stopped
-    networks: '{{ _docker_network }}'
-    networks_cli_compatible: no
-    #container_default_behavior: no_defaults
-    env: "{{ _config }}"
-    labels:
-      traefik.enable: "false"
+    - name: Start the openproject worker container
+      docker_container:
+        image: '{{ openproject_image }}'
+        name: worker
+        command: "./docker/worker"
+        volumes:
+          - '{{ openproject_assets_volume }}'
+        env: "{{ _config }}"
+        labels:
+          traefik.enable: "false"
 
-- name: Start the openproject worker container
-  docker_container:
-    image: '{{ openproject_image }}'
-    name: worker
-    command: "./docker/worker"
-    restart_policy: unless-stopped
-    networks: '{{ _docker_network }}'
-    networks_cli_compatible: no
-    #container_default_behavior: no_defaults
-    volumes:
-      - '{{ openproject_assets_volume }}'
-    env: "{{ _config }}"
-    labels:
-      traefik.enable: "false"
+    - name: Start the openproject cron container
+      docker_container:
+        image: '{{ openproject_image }}'
+        name: cron
+        command: "./docker/cron"
+        volumes:
+          - '{{ openproject_assets_volume }}'
+        env: "{{ _config }}"
+        labels:
+          traefik.enable: "false"
 
-- name: Start the openproject cron container
-  docker_container:
-    image: '{{ openproject_image }}'
-    name: cron
-    command: "./docker/cron"
-    restart_policy: unless-stopped
-    networks: '{{ _docker_network }}'
-    networks_cli_compatible: no
-    #container_default_behavior: no_defaults
-    volumes:
-      - '{{ openproject_assets_volume }}'
-    env: "{{ _config }}"
-    labels:
-      traefik.enable: "false"
+  module_defaults:
+    docker_container:
+      pull: true
+      restart_policy: unless-stopped
+      networks: '{{ _docker_network }}'
+      networks_cli_compatible: no
+      #container_default_behavior: no_defaults
