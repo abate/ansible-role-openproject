@@ -10,7 +10,7 @@
       file:
         state: directory
         path: '{{ openproject_dir }}/{{ item }}'
-        mode: 0774
+        #mode: 0755
       loop:
         - assets
         - pgdata

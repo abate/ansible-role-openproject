@@ -2,7 +2,7 @@
 lint: |
   set -e
   yamllint -d relaxed .
-  ansible-lint
+  ansible-lint -x 208
   flake8
 dependency:
   name: galaxy
