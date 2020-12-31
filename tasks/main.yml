@@ -4,6 +4,9 @@
     _config: |
       {{ openproject_configuration_default
       | combine(openproject_configuration | default({}), recursive=True) }}
+    _labels: |
+      {{ openproject_labels_default
+      | combine(openproject_traefik_labels | default({}), recursive=True) }}
     _docker_network: |
       {{ openproject_docker_network | default([{ 'name': 'bridge' }]) }}
 
@@ -20,28 +23,22 @@
     - name: Start the openproject db container
       docker_container:
         image: "{{ openproject_postgres_image }}"
-        name: db
+        name: openproject-db
         volumes:
           - '{{ openproject_db_volume }}'
         env:
           POSTGRES_PASSWORD: "{{ openproject_db_password }}"
           POSTGRES_DB: "openproject"
-        labels:
-          traefik.enable: "false"
 
     - name: Start the openproject web container
       # notify: health_check_openproject
       docker_container:
         image: '{{ openproject_image }}'
-        name: web
+        name: openproject-web
         ports: '{{ openproject_docker_ports }}'
+        networks: '{{ _docker_network }}'
         env: "{{ _config }}"
-        labels:
-          traefik.backend: "web"
-          traefik.frontend.rule: "Host:{{ openproject_hostname }}"
-          traefik.port: "8080"
-          traefik.enable: "{{ openproject_traefik }}"
-          traefik.docker.network: "{{ _docker_network[0].name }}"
+        labels: "{{ _labels }}"
         #memory: 500M
         #memory_swap: 1.5GB
         #log_driver: json-file
@@ -52,18 +49,19 @@
     - name: Start the openproject seeder container
       docker_container:
         image: '{{ openproject_image }}'
-        name: seeder
+        name: openproject-seeder
         command: "./docker/seeder"
         volumes:
           - '{{ openproject_assets_volume }}'
         env: "{{ _config }}"
+        networks: '{{ _docker_network }}'
         labels:
           traefik.enable: "false"
 
     - name: Start the openproject cache container
       docker_container:
         image: memcached
-        name: cache
+        name: openproject-cache
         env: "{{ _config }}"
         labels:
           traefik.enable: "false"
@@ -71,7 +69,7 @@
     - name: Start the openproject worker container
       docker_container:
         image: '{{ openproject_image }}'
-        name: worker
+        name: openproject-worker
         command: "./docker/worker"
         volumes:
           - '{{ openproject_assets_volume }}'
@@ -82,7 +80,7 @@
     - name: Start the openproject cron container
       docker_container:
         image: '{{ openproject_image }}'
-        name: cron
+        name: openproject-cron
         command: "./docker/cron"
         volumes:
           - '{{ openproject_assets_volume }}'
