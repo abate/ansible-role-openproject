@@ -50,7 +50,7 @@
       docker_container:
         image: '{{ openproject_image }}'
         name: openproject-seeder
-        command: "./docker/seeder"
+        command: "./docker/prod/seeder"
         volumes:
           - '{{ openproject_assets_volume }}'
         env: "{{ _config }}"
@@ -70,7 +70,7 @@
       docker_container:
         image: '{{ openproject_image }}'
         name: openproject-worker
-        command: "./docker/worker"
+        command: "./docker/prod/worker"
         volumes:
           - '{{ openproject_assets_volume }}'
         env: "{{ _config }}"
@@ -81,7 +81,7 @@
       docker_container:
         image: '{{ openproject_image }}'
         name: openproject-cron
-        command: "./docker/cron"
+        command: "./docker/prod/cron"
         volumes:
           - '{{ openproject_assets_volume }}'
         env: "{{ _config }}"
