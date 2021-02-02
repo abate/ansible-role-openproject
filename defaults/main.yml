@@ -10,17 +10,19 @@ openproject_pgdata: '{{ openproject_dir }}/pgdata'
 openproject_assets: '{{ openproject_dir }}/assets'
 
 openproject_db_volume: '{{ openproject_pgdata }}:/var/lib/postgresql/data'
+openproject_pgdata_volume: '{{ openproject_pgdata }}:/var/openproject/pgdata:ro'
 openproject_assets_volume: '{{ openproject_assets }}:/var/openproject/assets'
 
 openproject_hostname:
 openproject_traefik: "false"
-openproject_docker_ports: ["8080"]
+openproject_docker_ports: []
 openproject_db_password:
 
 openproject_labels_default:
   traefik.enable: "{{ openproject_traefik }}"
   traefik.http.routers.openproject.rule: "Host(`{{ openproject_hostname }}`)"
   traefik.http.services.openproject.loadbalancer.server.port: "8080"
+  traefik.http.services.openproject.loadbalancer.passhostheader: "true"
   traefik.http.routers.openproject.tls.certresolver: "letsencryptresolver"
   traefik.http.routers.openproject.entrypoints: "websecure"
 

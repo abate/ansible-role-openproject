@@ -13,6 +13,9 @@
   block:
     - debug: var=_config
     - debug: var=_docker_network
+    - debug: var=openproject_assets_volume
+    - debug: var=openproject_pgdata_volume
+    - debug: var=openproject_db_volume
 
     - name: Assert that variables are defined
       assert:
@@ -39,6 +42,9 @@
         networks: '{{ _docker_network }}'
         env: "{{ _config }}"
         labels: "{{ _labels }}"
+        volumes:
+          - '{{ openproject_assets_volume }}'
+          - '{{ openproject_pgdata_volume }}'
         #memory: 500M
         #memory_swap: 1.5GB
         #log_driver: json-file
@@ -53,16 +59,9 @@
         command: "./docker/prod/seeder"
         volumes:
           - '{{ openproject_assets_volume }}'
+          - '{{ openproject_pgdata_volume }}'
         env: "{{ _config }}"
         networks: '{{ _docker_network }}'
-        labels:
-          traefik.enable: "false"
-
-    - name: Start the openproject cache container
-      docker_container:
-        image: memcached
-        name: openproject-cache
-        env: "{{ _config }}"
         labels:
           traefik.enable: "false"
 
@@ -73,6 +72,7 @@
         command: "./docker/prod/worker"
         volumes:
           - '{{ openproject_assets_volume }}'
+          - '{{ openproject_pgdata_volume }}'
         env: "{{ _config }}"
         labels:
           traefik.enable: "false"
@@ -84,6 +84,15 @@
         command: "./docker/prod/cron"
         volumes:
           - '{{ openproject_assets_volume }}'
+          - '{{ openproject_pgdata_volume }}'
+        env: "{{ _config }}"
+        labels:
+          traefik.enable: "false"
+
+    - name: Start the openproject cache container
+      docker_container:
+        image: memcached
+        name: openproject-cache
         env: "{{ _config }}"
         labels:
           traefik.enable: "false"
