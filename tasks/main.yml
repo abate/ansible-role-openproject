@@ -93,7 +93,7 @@
       docker_container:
         image: memcached
         name: openproject-cache
-        env: "{{ _config }}"
+        hostname: openproject-cache
         labels:
           traefik.enable: "false"
 
